@@ -40,6 +40,7 @@ app.get('/api/health', (req, res) => {
 
   res.json({
     status: 'ok',
+    service: 'ProofLens Backend (Many Tiny Judges)',
     mode,
     reviewerModel,
     finalJudgeModel,
@@ -139,9 +140,21 @@ app.use((err, req, res, next) => {
 
 // Start listening
 app.listen(PORT, () => {
+  const mode = (process.env.PROOFLENS_MODE || 'demo').toLowerCase();
+  const isDemoMode = mode === 'demo';
+  const reviewerModel =
+    process.env.REVIEWER_MODEL ||
+    (isDemoMode ? 'gemma-4-26b-a4b-it' : (process.env.GEMMA_MODEL || 'gemma-4-31b-it'));
+  const finalJudgeModel =
+    process.env.FINAL_JUDGE_MODEL || process.env.GEMMA_MODEL || 'gemma-4-31b-it';
+  const reviewerConcurrency = isDemoMode ? 4 : 2;
+
   console.log(`===========================================`);
-  console.log(`🚀 ProofLens Backend (Many Tiny Judges) on port ${PORT}`);
-  console.log(`📡 Model target: ${process.env.GEMMA_MODEL || 'gemma-4-31b-it'}`);
+  console.log(`🚀 ProofLens Backend`);
+  console.log(`Mode: ${mode}`);
+  console.log(`Reviewer model: ${reviewerModel}`);
+  console.log(`Final Judge model: ${finalJudgeModel}`);
+  console.log(`Reviewer concurrency: ${reviewerConcurrency}`);
   console.log(`🔍 Review endpoint: POST http://localhost:${PORT}/api/review`);
   console.log(`🏥 Health check:   GET  http://localhost:${PORT}/api/health`);
   console.log(`===========================================`);
